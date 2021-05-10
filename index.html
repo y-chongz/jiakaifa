@@ -1,0 +1,75 @@
+<!DOCTYPE HTML>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Home</title>
+    <!-- Meta tag Keywords -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8" />
+    <meta name="keywords" content=""/>
+    <script>
+        addEventListener("load", function () {
+            setTimeout(hideURLbar, 0);
+        }, false);
+
+        function hideURLbar() {
+            window.scrollTo(0, 1);
+        }
+    </script>
+    <!-- Meta tag Keywords -->
+    <!-- css files -->
+    <link rel="stylesheet" th:href="@{../../../res/css/style.css}" type="text/css" media="all" />
+    <!-- Style-CSS -->
+    <link rel="stylesheet" th:href="@{../../../res/css/fontawesome-all.css}">
+    <!-- Font-Awesome-Icons-CSS -->
+    <!-- //css files -->
+    <!-- web-fonts -->
+    <!-- //web-fonts -->
+</head>
+
+<body>
+<!-- bg effect -->
+<div id="bg">
+    <canvas></canvas>
+    <canvas></canvas>
+    <canvas></canvas>
+</div>
+<!-- //bg effect -->
+<!-- title -->
+<h1>社員情報管理システム</h1>
+<!-- //title -->
+<!-- content -->
+<div class="sub-main-w3">
+    <p th:text="${msg}" style="color: red"></p>
+    <form action="@{/toslogin}" >
+        <h2 >ログインしてください
+            <i class="fas fa-level-down-alt"></i>
+        </h2>
+        <tr/>
+        <div class="form-style-agile">
+            <label >
+                <i class="fas fa-user"></i>
+                社員ID
+            </label>
+            <input placeholder="社員ID" name="sNumber" type="text" required="">
+        </div>
+        <div class="form-style-agile">
+            <label >
+                <i class="fas fa-unlock-alt"></i>
+                パスワー
+            </label>
+            <input placeholder="パスワー" name="sPwd" type="password" required="">
+        </div>
+        <!-- //checkbox -->
+        <input type="submit" value="ログイン">
+    </form>
+</div>
+
+<!-- Jquery -->
+<script th:src="@{../../../res/js/jquery-3.3.1.min.js}"></script>
+
+<script th:src="@{../../../res/js/canva_moving_effect.js}"></script>
+
+</body>
+
+</html>

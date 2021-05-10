@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+
+
+<head>
+    <title>Title</title>
+    <link rel="stylesheet" href="../../../res/layui/css/layui.css">
+
+    <script src="../../../res/js/jquery-3.3.1.min.js"></script>
+
+</head>
+<body>
+<!--引入layui核心组件js-->
+<script src="../../../res/layui/layui.js"></script>
+<script type="text/javascript">
+    $(document).ready(function(){
+
+        var form = layui.form;
+        form.render();
+        /*点击删除 清空输入框的内容*/
+        $('.btn').click(function(){
+            $('.Test input').val('');
+        });
+    });
+</script>
+
+
+
+
+<script>
+
+    layui.use(['layer','jquery','table','form','laydate','upload'],function () {
+        let layer =layui.layer;
+        let $=layui.jquery;
+        let table = layui.table;
+        let form =layui.form;
+        var laydate = layui.laydate;
+
+
+
+
+
+        $("#btn-remove").click(function () {
+            let array=  table.checkStatus("dg").data;
+            if(array.length==0){
+                layer.msg('请选择你要删除的数据',{icon:5});
+            }else{
+                let sids=[];
+                for(let i in array){
+                    sids.push(array[i].sId);
+                }
+                $.post('../../student/remove',{"sids[]":sids},function (flag) {
+                    if(flag){
+                        table.reload('dg');
+                        layer.msg('删除成功',{icon: 6});
+                    }else{
+                        layer.msg('删除失败',{icon: 5});
+                    }
+                })
+            }
+        })
+
+        //条件查询
+        $("#btn-search").click(function () {
+            table.reload('dg',{
+                where: {
+                    sName: $("#sName").val(),
+                    sNumber: $("#sNumber").val(),
+                    cName: $("#cName").val(),
+                    rNumber: $("#rNumber").val(),
+                    fName: $("#fName").val()
+                }
+            })
+        })
+
+
+
+        //弹出添加对话框
+        $("#btn-add").click(function () {
+            layer.open({
+                type:1,
+                title:['学生信息表-添加', 'font-size:18px; color:green;'],
+                area: ['600px','500px'],
+                closeBtn: 0,
+                content: $("#add-dialog").html()
+            });
+            form.render();
+            laydate.render({
+                elem: '#sAdmissionDate' //指定元素
+            });
+            $.post("../../college/list",function (data) {
+                dataType:'json'
+                for(let i in data){
+                    $("#cidd").append("<option value='"+data[i].cid+"'>"+data[i].cname+"</option>")
+                }
+                form.render();
+            })
+            $.post("../../floor/list",function (data) {
+                for(let i in data){
+                    $("#fID").append("<option value='"+data[i].fid+"'>"+data[i].fname+"</option>")
+                }
+                form.render();
+            })
+            form.render();
+            form.on('submit(form-add-submit)',function (data) {
+                $.post('../../student/insert_one',data.field,function (flag) {
+                    if(flag){
+                        table.reload('dg');
+                        layer.closeAll('page');
+                        layer.msg('操作成功',{icon:6});
+                    }else{
+                        layer.msg('操作失败',{icon:5});
+                    }
+
+                })
+                return false;
+            })
+        })
+
+        //修改对话框
+        $("#btn-edit").click(function () {
+            let array =table.checkStatus("dg").data;
+            if(array.length==0){
+                layer.msg('请选择要修改的数据');
+            }else if(array.length>1){
+                layer.msg('只能选择一条数据');
+            }else{
+                layer.open({
+                    type:1,
+                    title:['学生信息表-修改', 'font-size:18px; color:green;'],
+                    area: ['500px','300px'],
+                    closeBtn: 0,
+                    content: $("#edit-dialog").html()
+                });
+                form.render();
+                laydate.render({
+                    elem: '#sadate' //指定元素
+                });
+                $.post("../../college/list",function (data) {
+                    for(let i in data){
+                        $("#cID").append("<option value='"+data[i].cid+"'>"+data[i].cname+"</option>")
+                    }
+                    form.render();
+                })
+                $.post("../../floor/list",function (data) {
+                    for(let i in data){
+                        $("#fIDD").append("<option value='"+data[i].fid+"'>"+data[i].fname+"</option>")
+                    }
+                    form.render();
+                })
+                form.render();
+                form.val('edit-form-load-data',{
+                    sId:array[0].sId,
+                    sName:array[0].sName,
+                    sNumber:array[0].sNumber,
+                    sSex:array[0].sSex,
+                    sNativePlace:array[0].sNativePlace,
+                    sAdmissionDate:array[0].sAdmissionDate,
+                    sPhone:array[0].sPhone,
+                    cId:array[0].cId,
+                    rId:array[0].rId,
+                    fId:array[0].fId,
+                })
+            }
+
+
+            form.on('submit(form-edit-data)',function (data) {
+                $.post('../../student/update',data.field,function (flag) {
+                    if(flag){
+                        table.reload('dg');
+                        layer.closeAll('page');
+                        layer.msg('修改成功',{icon: 6})
+                    }else{
+                        layer.msg('修改失败',{icon: 5});
+                    }
+                })
+                return false;
+            })
+
+        })
+
+        //查询显示
+        table.render({
+            elem:'#dg',
+            url:'../../student/listPage',
+            page: true,
+            limit: 6,
+            toolbar: 'default',
+            cols: [ [
+                {title:'Ne',type:'checkbox'},
+                {field: 'sId',title:'社員ID',type:'checkbox'},
+                {field: 'sName',title:'名前'},
+                {field: 'sSex',title:'性别'},
+                {field: 'sNativePlace',title:'部門'},
+                {field: 'sAdmissionDate',title:'级别'},
+                {field: 'cName',title:'入社日'},
+                {field: 'rNumber',title: '卒業年 '},
+                {field: 'fName',title: '備考'}
+            ]]
+        });
+    })
+</script>
+<div class="layui-header">
+<ul class="layui-nav layui-bg-cyan">
+    <li class="layui-nav-item"><a href="">社員情報検</a></li>
+</ul>
+    <ul class="layui-nav layui-layout-right">
+        <li class="layui-nav-item" lay-unselect="">
+            <th:a href="javascript:;">
+                登録者ID： <span th:text="${session.student.sName}"></span></th:a>
+        </li>
+        <li class="layui-nav-item"><a href="/slogin">ログアウ</a></li>
+    </ul>
+<br>
+</div>
+<div class="Test">
+    <form class="layui-form">
+    社員：
+    <div class="layui-inline">
+        <input class="layui-input" name="sName" id="a" autocomplete="off">
+    </div>
+    名前：
+    <div class="layui-inline">
+        <input class="layui-input" name="sNumber" id="b" autocomplete="off">
+    </div>
+    性别：
+    <div class="layui-inline">
+        <input type="checkbox" name="like[write]" title="男" checked="">
+        <input type="checkbox" name="like[read]" title="女" >
+    </div>
+    部門：
+    <div class="layui-inline">
+            <select name="cId"  lay-verify="required">
+            </select>
+    </div>
+    <hr class="layui-border-orange">
+    级别：
+    <div class="layui-inline">
+
+            <select name="cId"  lay-verify="required">
+            </select>
+    </div>
+    入社日：
+    <div class="layui-input-inline">
+        <input type="text" class="layui-input" name="sAdmissionDate" placeholder="yyyy-MM-dd HH:mm:ss">
+    </div>
+        ~
+    <div class="layui-input-inline">
+        <input type="text" class="layui-input" name="sAdmissionDate" placeholder="yyyy-MM-dd HH:mm:ss">
+    </div>
+    <button class="layui-btn btn" data-type="reload" ><i class="layui-icon">&#xe615;</i> 清空</button>
+
+    <button class="layui-btn" data-type="reload" id="btn-search"><i class="layui-icon">&#xe615;</i> 搜索</button>
+
+    </form>
+
+       <!-- <div class="layui-btn-group">
+            <button type="button" class="layui-btn" data-type="reload" id="btn-add">增加</button>
+            <button type="button" class="layui-btn" data-type="reload" id="btn-edit">修改</button>
+            <button type="button" class="layui-btn" data-type="reload" id="btn-remove">删除</button>
+        </div>-->
+    </tr>
+</div>
+<table id="dg"></table>
+<script id="add-dialog" type="text/html">
+    <form class="layui-form">
+        <div class="layui-form-item">
+            <label class="layui-form-label">学生姓名</label>
+            <div class="layui-input-block">
+                <input type="text" name="sName" lay-verify="required" autocomplete="off" placeholder="请输入学生姓名" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">学号</label>
+            <div class="layui-input-block">
+                <input type="text" name="sNumber" lay-verify="required" autocomplete="off" placeholder="请输入学生学号" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">性别</label>
+            <div class="layui-input-block">
+                <select name="sSex" lay-verify="required">
+                    <option value="男">男</option>
+                    <option value="女">女</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">籍贯</label>
+            <div class="layui-input-block">
+                <input type="text" name="sNativePlace" lay-verify="required" autocomplete="off" placeholder="请输入籍贯" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">入学日期</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="sAdmissionDate" name="sAdmissionDate" placeholder="yyyy-MM-dd HH:mm:ss">
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">联系方式</label>
+            <div class="layui-input-block">
+                <input type="text" name="sPhone" lay-verify="required" autocomplete="off" placeholder="请输入联系方式" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">学院</label>
+            <div class="layui-input-block">
+                <select name="cId" id="cidd" lay-verify="required">
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">所属宿舍楼</label>
+            <div class="layui-input-block">
+                <select name="fId"  id="fID" lay-verify="required">
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">宿舍号</label>
+            <div class="layui-input-block">
+                <input type="text" name="rNumber" lay-verify="required" autocomplete="off" placeholder="请输入宿舍号" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn" lay-submit lay-filter="form-add-submit">保存</button>
+                <button class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </form>
+</script>
+
+<script id="edit-dialog" type="text/html" >
+    <form class="layui-form" lay-filter="edit-form-load-data">
+        <div class="layui-form-item">
+            <label class="layui-form-label">学生姓名</label>
+            <div class="layui-input-block">
+                <input type="hidden" name="sId" id="sId">
+                <input type="text" name="sName" lay-verify="required" autocomplete="off" placeholder="请输入姓名" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">学号</label>
+            <div class="layui-input-block">
+                <input type="text" name="sNumber" lay-verify="required" autocomplete="off" placeholder="请输入学号" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">性别</label>
+            <div class="layui-input-block">
+                <select name="sSex" lay-verify="required">
+                    <option value="男">男</option>
+                    <option value="女">女</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">籍贯</label>
+            <div class="layui-input-block">
+                <input type="text" name="sNativePlace" lay-verify="required" autocomplete="off" placeholder="请输入籍贯" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">入学日期</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="sadate" name="sAdmissionDate" placeholder="yyyy-MM-dd HH:mm:ss">
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">联系方式</label>
+            <div class="layui-input-block">
+                <input type="text" name="sPhone" lay-verify="required" autocomplete="off" placeholder="请输入联系方式" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">学院</label>
+            <div class="layui-input-block">
+                <select name="cId" id="cID" lay-verify="required">
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">所属宿舍楼</label>
+            <div class="layui-input-block">
+                <select name="fId"  id="fIDD" lay-verify="required">
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">宿舍号</label>
+            <div class="layui-input-block">
+                <input type="text" name="rNumber" lay-verify="required" autocomplete="off" placeholder="请输入宿舍号" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn" lay-submit lay-filter="form-edit-data">保存</button>
+                <button class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </form>
+</script>
+</body>
+
+</html>
